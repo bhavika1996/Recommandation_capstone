@@ -1,4 +1,4 @@
-from django.shortcuts import render,HttpResponse
+from django.shortcuts import render, HttpResponse
 from django.shortcuts import render
 import pandas as pd
 import csv
@@ -13,12 +13,12 @@ totalMortality = round((totalDeath / totalPositive) * 100, 2)
 
 malePositive = df[df["Gender"] == 1]["Gender"].count()
 maleDeath = df[(df["Gender"] == 1) & (df["Death"] == 1)]["Gender"].count()
-malemortality = round((maleDeath / malePositive) * 100,2)
+malemortality = round((maleDeath / malePositive) * 100, 2)
 
 
 femalePositive = df[df["Gender"] == 2]["Gender"].count()
 femaleDeath = df[(df["Gender"] == 2) & (df["Death"] == 1)]["Gender"].count()
-femalemortality = round((femaleDeath / femalePositive) * 100,2)
+femalemortality = round((femaleDeath / femalePositive) * 100, 2)
 
 gendermortality = 100-(femalemortality+malemortality)
 
@@ -47,22 +47,47 @@ totalDeath = maleDeath + femaleDeath
 totalPositive = malePositive + femalePositive
 
 # Create your views here.
+
+
 def home(request):
     return render(request, 'home.html')
+
 
 def upload(request):
     context = {
         'loaded_data': count,
         'male_death': malemortality,
-        'female_death':femalemortality,
+        'female_death': femalemortality,
         'totalDeath': totalMortality,
-        'gender_death':gendermortality,
-        'male_positive':malePositive,
-        'female_positive':femalePositive,
+        'gender_death': gendermortality,
+        'male_positive': malePositive,
+        'female_positive': femalePositive,
         'total_positive': totalPositive,
     }
 
     return render(request, "upload.html", context)
+
+
+def download_csv_template(request):
+
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = 'attachment; filename="covid-template.csv"'
+
+    writer = csv.writer(response)
+    writer.writerow(["Case identifier number", "Region", "Episode week", "Episode week group", "Episode year", 'Gender', 'Age group', "Occupation",
+                    "Asymptomatic",	'Onset week of symptoms', "Onset year of symptoms",	"Hospital status", "Recovered",	"Recovery week", "Recovery year", "Death", "Transmission"])
+    return response
+
+def custom_csv_operations(request):
+
+    download_url = "http://" + request.get_host() + "/download_csv_template"
+    context = {
+
+        "url": download_url
+    }
+
+    return render(request, "file.html", context)
+
 
 ###################################################################
 
